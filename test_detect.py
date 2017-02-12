@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 import cv2.aruco as aruco
 import time
+import calibrate_camera_online
 
 print(cv2.__version__)
 vidcap = cv2.VideoCapture('samplearucovideo.mp4')
@@ -11,8 +12,18 @@ start_time = time.time()
 success, frame = vidcap.read()
 success = True
 
+retval, mtx, dist, rvecs, tvecs = calibrate_camera_online.calibrate()
+print("matrix:")
+print(mtx)
+
+print("dist")
+print(dist)
+
+length = 0.5 * (min(8,5) * 0.1)
+
 while success:
     # Capture frame-by-frame
+    frame_start_time = time.time()
     ret, frame = vidcap.read()
     if ret == False:
         break
@@ -31,12 +42,16 @@ while success:
         '''
     # lists of ids and the corners beloning to each id
     corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
+
+    rvecs_curr, tvecs_curr = aruco.estimatePoseSingleMarkers(corners, 0.05, mtx, dist)
     # print(corners)
     # print(ids)
     # print(rejectedImgPoints)
 
     if ids != None:
-        # aruco.drawAxis(frame, mtx, dist, rvec, tvec, 0.1)  # Draw Axis
+        for rvec, tvec in zip(rvecs_curr, tvecs_curr):
+            aruco.drawAxis(frame, mtx, dist, rvec, tvec, 0.05)  # Draw Axis
+
         aruco.drawDetectedMarkers(frame, corners)  # Draw A square around the markers
         # print(ids)
         # print(corners)
@@ -45,18 +60,18 @@ while success:
     # my problem was that the cellphone put black all around it. The alrogithm
     # depends very much upon finding rectangular black blobs
 
-    # print("Time" + str(time.time() - start_time))
+    print("Frame Time: " + str(time.time() - frame_start_time))
     # gray = aruco.drawDetectedMarkers(gray, corners)
 
     # print(rejectedImgPoints)
     # Display the resulting frame
-    # cv2.imshow('frame', frame)
+    cv2.imshow('frame', frame)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
 
 # When everything done, release the capture
-print("Time" + str(time.time() - start_time))
+print("Total Time: " + str(time.time() - start_time))
 # vidcap.release()
 # cv2.destroyAllWindows()

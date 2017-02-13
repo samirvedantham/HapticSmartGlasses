@@ -3,24 +3,22 @@ import time
 import cv2.aruco as A
 import numpy as np
 
-def calibrate():
+# import calibrate function from this file and call it with your camera's
+# video file name (string) as a parameter to get the correct paramters for your camera
+# example: retval, mtx, dist, rvecs, tvecs = calibrate("video.mp4")
+def calibrate(video_filename):
     dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_250)
     board = cv2.aruco.CharucoBoard_create(8, 5, 0.1, 0.065, dictionary=dictionary)
-    # img = board.draw((200*3,200*3))
 
-    #Dump the calibration board to a file
-    # cv2.imwrite('charuco.png',img)
-
-
-    #Start capturing images for calibration
-    cap = cv2.VideoCapture('short_charucocalib.mp4')
-
+    # Change to video from your own camera for calibration
+    cap = cv2.VideoCapture(video_filename)
+    ret, frame = cap.read()
+    
     allCorners = []
     allIds = []
     decimator = 0
-    for i in range(287):
+    while ret:
         # print(i)
-        ret,frame = cap.read()
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         res = cv2.aruco.detectMarkers(gray,dictionary)
 
@@ -36,6 +34,8 @@ def calibrate():
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
         decimator+=1
+        
+        ret,frame = cap.read()
 
     imsize = gray.shape
 
@@ -49,10 +49,10 @@ def calibrate():
         print(cal[1])
         print("distCoeffs: ")
         print(cal[2])
-        print("rvecs: ")
-        print(cal[3])
-        print("tvecs: ")
-        print(cal[4])
+        # print("rvecs: ")
+        # print(cal[3])
+        # print("tvecs: ")
+        # print(cal[4])
 
         return cal[0], cal[1], cal[2], cal[3], cal[4]
     except:
@@ -64,4 +64,3 @@ def calibrate():
     # print(allCorners)
     # print(len(allIds))
     # print(len(allCorners))
-

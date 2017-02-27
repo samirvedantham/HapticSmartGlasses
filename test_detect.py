@@ -2,10 +2,10 @@ import numpy as np
 import cv2
 import cv2.aruco as aruco
 import time
-import calibrate_camera_online
+# import calibrate_camera_online
 import sys
-from PIL import Image, ImageDraw
-import turtle
+# from PIL import Image, ImageDraw
+# import turtle
 
 print(cv2.__version__)
 # # change 'samplearucovideo.mp4' to any video
@@ -29,12 +29,12 @@ dist = np.matrix([[  6.79408999e-02,   1.74574431e+01,   1.04400486e-02,  -8.236
 start_time = time.time()
 
 # lists to store corners, ids, and rejectedImgPoints for each frame
-corners_list= []
-ids_list = []
-rejectedImgPoints_list = []
 aruco_dict = aruco.Dictionary_get(aruco.DICT_6X6_250)
 parameters = aruco.DetectorParameters_create()
-
+counter = 0
+path_list = []
+reference_id = 16
+pointer_id = 4
 while ret:
     # uncomment line below if you want to see time to process each frame
     # frame_start_time = time.time()
@@ -46,19 +46,24 @@ while ret:
     corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
     
     # store aruco marker data for current frame
-    corners_list.append(corners)
-    ids_list.append(ids)
-    rejectedImgPoints_list.append(rejectedImgPoints)
+    id_list = []
+    if ids != None:
+        for id in ids:
+            id_list.append(id[0])
 
     # extract rotational and transitional vectors for markers in current frame
     rvecs_curr, tvecs_curr = aruco.estimatePoseSingleMarkers(corners, 0.05, mtx, dist)
-    print corner
+    # if len(corners) != 0:
+    #     print(corners)
+    #     print(corners[0])
+    #     print(corners[0][0])
+    #     print(corners[0][0][0])
 
     if ids != None:
         for rvec, tvec in zip(rvecs_curr, tvecs_curr):
             # Draw 3D axes
             aruco.drawAxis(frame, mtx, dist, rvec, tvec, 0.05)
-            print(rvec, tvec)
+            # print(rvec, tvec)
             # uncommment below to print rotational matrix and rotational/transitional vectors for each marker in the current frame
             # rmat = cv2.Rodrigues(rvec)
             # print("rmat:")
@@ -71,11 +76,28 @@ while ret:
         # Draw A square around the markers
         aruco.drawDetectedMarkers(frame, corners) 
 
-    # Uncomment to display the frame with axes and square around marker
-    y_center = int(gray.shape[0]/2)
-    x_center = int(gray.shape[1]/2)
-    # print(x_center, y_center)
-    cv2.circle(frame, (x_center, y_center), 100, (0, 255, 0), 2, 8, 0)
+    # Draws dots in path created by marker with id = pointer_id
+    # and draws with respect to marker with id = reference_id
+    # default reference_id = 16
+    # default pointer_id = 4
+    # can be changec out of while loop
+    if reference_id in id_list:
+        reference_index = id_list.index(reference_id)
+        reference_x = corners[reference_index][0][0][0]
+        reference_y = corners[reference_index][0][0][1]
+        print(reference_x, reference_y)
+        if pointer_id in id_list:
+            pointer_index = id_list.index(pointer_id)
+            pointer_x = corners[pointer_index][0][0][0]
+            pointer_y = corners[pointer_index][0][0][1]
+            path_list.append((reference_x - pointer_x, reference_y - pointer_y))
+        if len(path_list) > 0:
+            for coord in path_list:
+                draw_x = reference_x - coord[0]
+                draw_y = reference_y - coord[1]
+                draw_coord = (draw_x, draw_y)
+                print(draw_coord)
+                cv2.circle(frame, draw_coord, 3, (0, 255, 0), 3, 8, 0)
     cv2.imshow('frame', frame)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):

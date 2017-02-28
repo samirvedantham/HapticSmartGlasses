@@ -21,13 +21,12 @@ void setup() {
   drv.setMode(DRV2605_MODE_INTTRIG);
 
   pinMode(TOUCH_BUTTON_PIN, INPUT);
-  pinMode(LED_PIN, OUTPUT); 
+  pinMode(LED_BUILTIN, OUTPUT);
 }
 
 uint8_t effect = 1;
 
 void loop() {
-
   buttonState = digitalRead(TOUCH_BUTTON_PIN);
 
   if (buttonState == HIGH)  {
@@ -35,25 +34,10 @@ void loop() {
     drv.setWaveform(1, 0);
     drv.go();
     effect++;
-    Serial.print(effect);
-    digitalWrite(LED_PIN, HIGH);
+    Serial.print(effect + '\n');
+    digitalWrite(LED_BUILTIN, HIGH);
     delay(500);
   } else  {
-    digitalWrite(LED_PIN, LOW);
+    digitalWrite(LED_BUILTIN, LOW);
   }
-  
-//  Serial.print("Effect #"); Serial.println(effect);
-//
-//  // set the effect to play
-//  drv.setWaveform(0, effect);  // play effect 
-//  drv.setWaveform(1, 0);       // end waveform
-//
-//  // play the effect!
-//  drv.go();
-//
-//  // wait a bit
-//  delay(500);
-//
-//  effect++;
-//  if (effect > 117) effect = 1;
 }

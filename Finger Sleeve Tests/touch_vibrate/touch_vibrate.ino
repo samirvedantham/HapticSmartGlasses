@@ -5,7 +5,7 @@ Adafruit_DRV2605 drv;
 
 // Constants for the pushbutton.
 const int TOUCH_BUTTON_PIN = 2;
-const int LED_PIN = 13;
+//const int LED_PIN = 13;
 
 // some variables for the state of the button.
 int buttonState = 0;
@@ -30,14 +30,18 @@ void loop() {
   buttonState = digitalRead(TOUCH_BUTTON_PIN);
 
   if (buttonState == HIGH)  {
+    Serial.println("Trying effect: " + effect);
     drv.setWaveform(0, effect);
     drv.setWaveform(1, 0);
     drv.go();
     effect++;
-    Serial.print(effect + '\n');
     digitalWrite(LED_BUILTIN, HIGH);
     delay(500);
   } else  {
     digitalWrite(LED_BUILTIN, LOW);
+  }
+
+  if (effect == 138)  {
+    effect = 1;
   }
 }
